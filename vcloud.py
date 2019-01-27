@@ -3,9 +3,8 @@
 import sys
 import configparser
 import time
-from db import ialab_db
 from lxml import *
-from ldap_class import ldapConnection
+from lxml import etree
 from pyvcloud.vcd.client import BasicLoginCredentials
 from pyvcloud.vcd.client import Client
 from pyvcloud.vcd.client import EntityType
@@ -65,7 +64,13 @@ class vcloud:
         user_type='user'
         dicts.append({'type':user_type,'name':member,'access_level':access_level})
         try:
+            print(dicts)
             vapp.add_access_settings(dicts)
-        except EntityNotFoundException:
+        except EntityNotFoundException as e:
             print('User: {user} failed'.format(user=member))
+            print(e)
 
+    def getVappAccess(self, vapp):
+        xml_content = vapp.get_access_settings()
+        print(etree.tostring(xml_content))
+        return None

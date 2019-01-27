@@ -62,6 +62,10 @@ class ialab_db:
         else:
             return False
 
+    def getIalabHref(self,username):
+        output = self.executevar('SELECT `href` FROM `ialab` WHERE `username`=%s', (username,))[0][0]
+        return output
+        
     def checkIalabUserExistsByID(self,href):
         count = self.executevar('SELECT COUNT(`username`) FROM `ialab` WHERE `href`=%s', (href,))
         if(int(count[0][0])) > 0:
@@ -75,4 +79,3 @@ class ialab_db:
             return True
         else:
             return False
-    
