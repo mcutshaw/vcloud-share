@@ -54,7 +54,6 @@ class vcloud:
 
     def addUserToVapp(self, vapp, member, href):
         resp = requests.get(url=self.api+'/vApp/'+vapp+'/controlAccess',headers=self.headers)
-        print(resp.text)
         xml_content = resp.text 
         ElementTree.register_namespace('', 'http://www.vmware.com/vcloud/v1.5' )
         root = ElementTree.fromstring(xml_content)
