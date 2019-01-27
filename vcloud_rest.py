@@ -38,17 +38,34 @@ class vcloud:
             if 'VAppRecord' in child.tag:
                 return child.attrib['href'].replace('https://vcloud.ialab.dsu.edu/api/vApp/', '')
 
-    def addUserToVapp(self, vapp, member):
+    def createAccessSetting(self,user_href, name, accessLevel):
+        xml_content = '<AccessSetting></AccessSetting>'
+        AccessSetting = ElementTree.fromstring(xml_content)
+        AccessSetting.tag = '{http://www.vmware.com/vcloud/v1.5}AccessSetting'
+        xml_content = '<Subject href="'+user_href+'" name="'+name+'" type="application/vnd.vmware.admin.user+xml" />'
+        Subject = ElementTree.fromstring(xml_content)
+        Subject.tag = '{http://www.vmware.com/vcloud/v1.5}Subject'
+        xml_content = '<AccessLevel>'+accessLevel+'</AccessLevel>'
+        AccessLevel = ElementTree.fromstring(xml_content)
+        AccessLevel.tag = '{http://www.vmware.com/vcloud/v1.5}AccessLevel'
+        AccessSetting.append(Subject)
+        AccessSetting.append(AccessLevel)
+        return AccessSetting
+
+    def addUserToVapp(self, vapp, member, href):
         resp = requests.get(url=self.api+'/vApp/'+vapp+'/controlAccess',headers=self.headers)
+        print(resp.text)
         xml_content = resp.text 
         ElementTree.register_namespace('', 'http://www.vmware.com/vcloud/v1.5' )
         root = ElementTree.fromstring(xml_content)
-        ElementTree.tostring(root, encoding='utf8', method='')
-    
-
-
-config = configparser.ConfigParser()
-config.read('search-db.conf')
-vcloud = vcloud(config)
-vapp = vcloud._getvapp('CyberConquest_Defender')
-vcloud.addUserToVapp(vapp,'macutshaw')
+        newAcl = self.createAccessSetting(href, member, 'ReadOnly')
+        try:
+            root[1].append(newAcl)
+        except IndexError:
+            xml_content = '<AccessSettings></AccessSettings>'
+            AccessSetting = ElementTree.fromstring(xml_content)
+            AccessSetting.tag = '{http://www.vmware.com/vcloud/v1.5}AccessSettings'
+            AccessSetting.append(newAcl)
+            root.append(AccessSetting)
+        data = ElementTree.tostring(root, encoding='utf8', method='xml' ).decode('utf-8')
+        resp = requests.post(url=self.api+'/vApp/'+vapp+'/action/controlAccess',headers=self.headers, data=data)

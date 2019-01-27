@@ -23,4 +23,5 @@ for x in range(1,int(Num)+1):
                 print('Member not in db:', member)
         else:
                 member_href = db.getIalabHref(member)
+                print(member)
                 vcloud.addUserToVapp(vapp, member, member_href)
